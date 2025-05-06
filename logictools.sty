@@ -1,0 +1,492 @@
+  %% logictools.sty
+  %% Copyright 2005 Miles Min Yin Cheang
+  %
+  % This work may be distributed and/or modified under the
+  % conditions of the LaTeX Project Public License, either version 1.3
+  % of this license or (at your option) any later version.
+  % The latest version of this license is in
+  %   http://www.latex-project.org/lppl.txt
+  % and version 1.3 or later is part of all distributions of LaTeX
+  % version 2005/12/01 or later.
+  %
+  % This work has the LPPL maintenance status “maintained”.
+  % 
+  % The Current Maintainer of this work is Miles Min Yin Cheang
+  %
+  % This work consists of the file logictools.sty
+
+
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{logictools}[2025/05/03, v0.1.0 logictools]
+
+\RequirePackage{xparse}
+\RequirePackage{expl3}
+\RequirePackage{stmaryrd}
+%\RequirePackage{filecontentsdef}
+\RequirePackage{amsmath}
+\RequirePackage{nicefrac}
+\RequirePackage{bussproofs}
+\RequirePackage{adjustbox}
+\RequirePackage{mathtools}
+\RequirePackage{trimspaces}
+\DeclareOption{oxford}{
+% Provides semantic value function
+% Gives automatic mathcal letters for the structure
+% Optionally gives a variable assignment, where if a single Latin letter is input then it will return the associated Greek symbol.
+\NewDocumentCommand{\semval}{m m o}
+{%
+\IfNoValueTF{#3}
+    {\text{$|#1|_{\mathcal{#2}}$}}
+    {\text{$|#1|_{\mathcal{#2}}^{\textgreek{\text{#3}}}$}}%
+}%
+
+% Provides "y differs from x in at most v" sign
+\newcommand{\difmost}[1]{
+\overset{#1}{\sim}
+}
+
+% Provides logical comma symbol
+
+\newcommand{\lcma}{
+\adjustbox{trim={.45\width} 0pt 0pt 0pt ,clip}{$\circ$}
+}
+
+% Provides an easy way to notate an unspecified proof from a set of premisses
+% Optionally, can include discharged assumptions
+
+\NewDocumentCommand{\prooffrom}{m t^ t_ o d<> m}
+{%
+\def\@prffrmalign{m}%
+\IfBooleanT{#2}%
+{%
+\IfBooleanT{#3}{\PackageWarning{logictools}{You shouldn't use both ^ and _ in one prooffrom. You got lucky, if you had done this the other way around (_^) everything would break.}}%
+\def\@prffrmalign{t}%
+}%
+\IfBooleanT{#3}{\def\@prffrmalign{b}}%
+\IfNoValueTF{#4}%
+    {\IfNoValueTF{#5}%
+        {\alwaysNoLine%
+        \AxiomC{\fbox{#1}}%
+        \UnaryInfC{\raisebox{0.675ex}[3.25ex]{\smash{\vdots}}}%
+        \UnaryInfC{#6}%
+        \alwaysSingleLine}
+        {\alwaysNoLine%
+        \AxiomC{\adjustbox{fbox,valign=\@prffrmalign}{#1}\adjustbox{valign=\@prffrmalign, rlap}{\hspace{0.1em}\scriptsize#5}}%
+        \UnaryInfC{\raisebox{0.675ex}[3.25ex]{\smash{\vdots}}}%
+        \UnaryInfC{#6}%
+        \alwaysSingleLine}%
+    }%
+    {\IfNoValueF{#5}{\PackageWarning{logictools}{You shouldn't use both [...] and <...> in one prooffrom. You got lucky, if you had done this the other way around (<...>[...]) you would have gotten strange results.}}%
+    \alwaysNoLine%
+    \AxiomC{\adjustbox{fbox,valign=\@prffrmalign}{#1}\adjustbox{valign=\@prffrmalign, rlap}{\hspace{0.1em}\scriptsize$\left[\text{#4}\right]$}}%
+    \UnaryInfC{\raisebox{0.675ex}[3.25ex]{\smash{\vdots}}}%
+    \UnaryInfC{#6}%
+    \alwaysSingleLine}%
+}%
+}%
+\DeclareOption*{\PackageWarning{logictools}{Unknown ‘\CurrentOption’}}
+\ProcessOptions\relax
+
+%---------------------------------------------------------------------
+
+% Thanks to everyone at TeX-exchange for teaching me how to use expl3!
+\ExplSyntaxOn
+\exp_args:Nc \mathchardef { __formal_original_): }=\char_value_mathcode:n {`)}
+\exp_args:Nc \mathchardef { __formal_original_(: }=\char_value_mathcode:n {`(}
+\exp_args:Nc \mathchardef { __formal_original_|: }=\char_value_mathcode:n {`|}
+\exp_args:Nc \mathchardef { __formal_original_;: }=\char_value_mathcode:n {`;}
+\exp_args:Nc \mathchardef { __formal_original_.: }=\char_value_mathcode:n {`.}
+\exp_args:Nc \mathchardef { __formal_original_[: }=\char_value_mathcode:n {`[}
+\tl_new:N \l__formal_rbracket_tl
+\tl_new:N \l__formal_lbracket_tl
+\keys_define:nn {options/formal}
+ {
+  parstackkern        .muskip_set:N = \l__formal_parstackkern_muskip,
+  parinnerpad         .muskip_set:N = \l__formal_parinnerpad_muskip,
+  italiccorrection    .muskip_set:N = \l__formal_italiccorrection_muskip,
+  parvoffset          .dim_set:N = \l__formal_parvoffset_dim,
+  quantskip           .muskip_set:N = \l__formal_quantskip_muskip,
+  lastquantskip       .muskip_set:N = \l__formal_lastquantskip_muskip,
+  scriptspace         .dim_set:N = \l__formal_scriptspace_dim,
+
+  parstackkern        .default:n = -0.9mu,
+  parinnerpad         .default:n = 0.9mu,
+  italiccorrection    .default:n = 1.12mu,
+  parvoffset          .default:n = 0.2ex,
+  quantskip           .default:n = 4.32mu,
+  lastquantskip       .default:n = 4.32mu,
+  scriptspace         .default:n = -0.025em,
+  
+  partype .tl_set:N = \l__formal_partype_tl,
+  partype .choice:,
+  
+  partype / double .code:n = 
+  \tl_set:Nn \l__formal_partype_tl {double} % futureproofing, unnecessary
+  \tl_set:Nn \l__formal_rbracket_tl {\rrparenthesis}
+  \tl_set:Nn \l__formal_lbracket_tl {\llparenthesis},
+  
+  partype / single .code:n = 
+  \tl_set:Nn \l__formal_partype_tl {single} % futureproofing, unnecessary
+  \tl_set:Nn \l__formal_rbracket_tl {%\char_set_mathcode:nn {41} {41} $)$}
+  \use:c{__formal_original_):}}
+  \tl_set:Nn \l__formal_lbracket_tl {%\char_set_mathcode:nn {40} {40} $($},
+  \use:c{__formal_original_(:}},
+  partype / unknown .code:n =
+    \msg_error:nneee { options/formal } { unknown_bracket_type }
+        { partype } % Name of choice key
+        { double , single } % Valid choices
+        { \exp_not:n {#1} }, % Invalid choice given
+        
+  partype           .default:n = single,
+ }
+% Initialise all the keys
+\keys_set:nn {options/formal}
+     {
+      parstackkern,
+      parinnerpad,
+      italiccorrection,
+      parvoffset,
+      quantskip,
+      lastquantskip,
+      partype,
+      scriptspace,
+     }
+
+
+\bool_new:N \l__formal_inside_bool
+\bool_set_false:N \l__formal_inside_bool
+\bool_new:N \l__formal_escaped_bool
+\bool_set_false:N \l__formal_escaped_bool
+
+\box_new:N \l__formal_lparbox
+\box_new:N \l__formal_rparbox
+
+\cs_new_protected:Nn \__formal_llpar_char:
+{
+    \bool_if:NTF \l__formal_escaped_bool 
+    {\use:c {__formal_original_(:}}
+    {
+        \box_use:N \l__formal_lparbox \peek_charcode:NF ( {\mskip \l__formal_parinnerpad_muskip \bool_set_true:N \l__formal_inside_bool}
+    }
+}
+
+\cs_new_protected:Nn \__formal_rrpar_char:
+{
+    \bool_if:NTF \l__formal_escaped_bool
+    {\use:c {__formal_original_):}}
+    {
+        \bool_if:NTF \l__formal_inside_bool 
+        {\mskip \l__formal_parinnerpad_muskip \mkern \l__formal_italiccorrection_muskip} 
+        {}
+        
+        \box_use:N \l__formal_rparbox
+        \peek_charcode:NTF ) {\bool_gset_false:N \l__formal_inside_bool} {\bool_gset_true:N \l__formal_inside_bool}
+    }
+}
+
+\cs_new_protected:Nn \__formal_escapetoggle:
+{
+    \bool_set_inverse:N \l__formal_escaped_bool
+}
+
+
+
+\cs_new_protected:Nn \__formal_quantstackenter:
+{
+    \bool_if:NTF \l__formal_escaped_bool 
+        {\use:c {__formal_original_|:}}
+        {
+            \begingroup
+            \char_set_active_eq:nN { `| } \__formal_quantstackesc:
+            \char_set_active_eq:nN { `; } \__formal_quantdivider:
+            \char_set_mathcode:nn { `; } { "8000 }
+            \__formal_headquant:w
+        }
+}
+
+\cs_new_protected:Npn \__formal_headquant:w #1,
+{
+    \tl_trim_spaces_apply:nN {#1} \__formal_headbox:n
+}
+
+\cs_new_protected:Npn \__formal_headbox:n #1
+{
+    \box_use:c{hd__formal_
+    #1box}
+}
+
+
+\cs_new_protected:Npn \__formal_quantdivider:
+{
+    \bool_if:NTF \l__formal_escaped_bool 
+        {\use:c {__formal_original_;:}}
+        {\__formal_bdyquant:w}
+}
+
+\cs_new_protected:Npn \__formal_bdyquant:w #1,
+{
+    \mskip \use:c{l__formal_quantskip_muskip} \tl_trim_spaces_apply:nN {#1} \__formal_bodybox:n
+}
+
+\cs_new_protected:Npn \__formal_bodybox:n #1
+{
+    \box_use:c{bdy__formal_
+    #1box}
+}
+
+\cs_new_protected:Nn \__formal_quantstackesc:
+{
+    \endgroup \mskip \use:c{l__formal_lastquantskip_muskip}
+}
+
+\cs_new_protected:Nn \__formal_dot:
+{
+    \peek_catcode_remove:NTF =
+        {\doteq}
+        {\use:c {__formal_original_.:}}
+}
+
+\cs_new_protected:Nn \__formal_lbrack:
+{
+    \bool_if:NTF \l__formal_escaped_bool 
+        {\use:c {__formal_original_[:}}
+        {\__formal_varsub:w}
+}
+
+\cs_new_protected:Npn \__formal_varsub:w #1/#2]
+{
+    \use:c{__formal_original_[:}\nicefrac{#1}{#2}]
+}
+
+\NewDocumentEnvironment{formallogic}{O{}}
+{
+    \setlength{\parindent}{0pt}
+    \cs_set:Npn \par {$\newline$}
+    \keys_set:nn {options/formal} % Load any settings given in the optional argument.
+        {
+            #1,
+        }
+    \setlength\scriptspace{\l__formal_scriptspace_dim}
+
+    \hbox_set:Nn \l__formal_lparbox 
+        {
+            \raisebox{\l__formal_parvoffset_dim}{$\l__formal_lbracket_tl \mkern \l__formal_parstackkern_muskip$}
+        }
+
+    \hbox_set:Nn \l__formal_rparbox 
+        {
+            \raisebox{\l__formal_parvoffset_dim}{$\mkern \l__formal_parstackkern_muskip \l__formal_rbracket_tl$}
+        }
+
+    \char_set_active_eq:nN { `( } \__formal_llpar_char:
+    \char_set_mathcode:nn { `( } { "8000 }
+    \char_set_active_eq:nN { `) } \__formal_rrpar_char:
+    \char_set_mathcode:nn { `) } { "8000 }
+    \char_set_active_eq:nN { `" } \__formal_escapetoggle:
+    \char_set_mathcode:nn { `" } { "8000 }
+    \char_set_active_eq:nN { `| } \__formal_quantstackenter:
+    \char_set_mathcode:nn { `| } { "8000 }
+    \char_set_active_eq:nN { `. } \__formal_dot:
+    \char_set_mathcode:nn { `. } { "8000 }
+    \char_set_active_eq:nN { `[ } \__formal_lbrack:
+    \char_set_mathcode:nn { `[ } { "8000 }
+
+    \(
+}
+{\)}
+
+% make quants
+\NewDocumentCommand{\DeclareQuantifier}{m m O{0mu} O{0mu}}
+{
+    \muskip_gzero_new:c {l__formal_#1befmuskip}
+    \muskip_gset:cn {l__formal_#1befmuskip} {#3}
+    \muskip_gzero_new:c {l__formal_#1intmukern}
+    \muskip_gset:cn {l__formal_#1intmukern} {#4}
+    \box_gclear_new:c {hd__formal_#1box}
+    \hbox_gset:cn {hd__formal_#1box} 
+        {
+            \ensuremath{#2 \mkern \use:c{l__formal_#1intmukern}}
+        }
+    \box_gclear_new:c {bdy__formal_#1box}
+    \hbox_gset:cn {bdy__formal_#1box} 
+        {
+            \ensuremath{\mskip \use:c{l__formal_#1befmuskip} #2 \mkern \use:c{l__formal_#1intmukern}}
+        }
+}
+\NewDocumentCommand{\LDeclareQuantifier}{m m O{0mu} O{0mu}}
+{
+    \muskip_zero_new:c {l__formal_#1befmuskip}
+    \muskip_set:cn {l__formal_#1befmuskip} {#3}
+    \muskip_zero_new:c {l__formal_#1intmukern}
+    \muskip_set:cn {l__formal_#1intmukern} {#4}
+    \box_clear_new:c {hd__formal_#1box}
+    \hbox_set:cn {hd__formal_#1box} 
+        {
+            \ensuremath{#2 \mkern \use:c{l__formal_#1intmukern}}
+        }
+    \box_clear_new:c {bdy__formal_#1box}
+    \hbox_set:cn {bdy__formal_#1box} 
+        {
+            \ensuremath{\mskip \use:c{l__formal_#1befmuskip} #2 \mkern \use:c{l__formal_#1intmukern}}
+        }
+}
+
+% Use this command to declare settings that will stay for the rest of the document!
+\NewDocumentCommand \logictoolsoptions { m }
+{
+\keys_set:nn {options/formal} 
+    {
+    #1 
+    }
+}
+\ExplSyntaxOff
+
+% Command that puts things inside the above environment, can be used inline.
+\newcommand{\fmllgc}[1]{
+\begin{formallogic}#1
+\end{formallogic}
+}
+
+% Consistent naming scheme for logical operators
+\newcommand{\limplies}{\rightarrow}
+\newcommand{\liff}{\leftrightarrow}
+%--------------------------------------------------
+
+\ExplSyntaxOn
+% Some commands for turning latin characters into greek ones
+\NewDocumentCommand{\ucgreek}{m}
+ {
+  \str_case_e:nnF { #1 }
+   {
+    {A}{\mathrm{A}}
+    {B}{\mathrm{B}}
+    {C}{\Sigma}
+    {D}{\Delta}
+    {E}{\mathrm{E}}
+    {F}{\Phi}
+    {G}{\Gamma}
+    {H}{\mathrm{H}}
+    {I}{\mathrm{I}}
+    {J}{\Theta}
+    {K}{\mathrm{K}}
+    {L}{\Lambda}
+    {M}{\mathrm{M}}
+    {N}{\mathrm{N}}
+    {O}{\mathrm{O}}
+    {P}{\Pi}
+    {Q}{\mathrm{X}}
+    {R}{\mathrm{P}}
+    {S}{\Sigma}
+    {T}{\mathrm{T}}
+    {U}{\Upsilon}
+    {V}{\mathrm{V}}
+    {W}{\Omega}
+    {X}{\Xi}
+    {Y}{\Psi}
+    {Z}{\mathrm{Z}}
+   }
+   {#1}
+ }
+\NewDocumentCommand{\lcgreek}{m}
+ {
+  \str_case_e:nnF { #1 }
+   {
+    {a}{\alpha}
+    {b}{\beta}
+    {c}{\varsigma}
+    {d}{\delta}
+    {e}{\varepsilon}
+    {f}{\varphi}
+    {g}{\gamma}
+    {h}{\eta}
+    {i}{\iota}
+    {j}{\vartheta}
+    {k}{\kappa}
+    {l}{\lambda}
+    {m}{\mu}
+    {n}{\nu}
+    {o}{o}
+    {p}{\pi}
+    {q}{\chi}
+    {r}{\rho}
+    {s}{\sigma}
+    {t}{\tau}
+    {u}{\upsilon}
+    {v}{\nu}
+    {w}{\omega}
+    {x}{\xi}
+    {y}{\psi}
+    {z}{\zeta}
+   }
+   {#1}
+ }
+
+% A way to call these commands on "\text{stuff}" instead of just "stuff"
+\NewDocumentCommand{\textgreek}{m}
+{
+    \tl_set:Nn \l__arg_tl { #1 }
+    \regex_replace_all:nnN {\c{text}\{([a-z])\}}{\c{lcgreek}{\1}}
+    \l__arg_tl
+    \regex_replace_all:nnN {\c{text}\{([A-Z])\}}{\c{ucgreek}{\1}}
+    \l__arg_tl
+
+    \tl_use:N \l__arg_tl
+}
+
+\ExplSyntaxOff
+
+
+%-----------------------------------------------------------------------------
+
+% Shorter equals sign
+\makeatletter
+\newcommand{\@ltoolsshorteq}{%
+  \settowidth{\@tempdima}{$x$}% Width of x in mathfont
+  \resizebox{\@tempdima}{\height}{=}%
+}
+\makeatother
+
+\ExplSyntaxOn
+% Provides the symbols for l-one, l-two, l-equals and nice looking superscript
+\NewDocumentCommand{\lsym}{m o}%
+{
+\IfNoValueTF{#2}
+    {% No superscript:
+        \str_case:nnF {#1}
+        {
+            {1}{\text{$\mathcal{L}\sb{1}$}}
+            {2}{\text{$\mathcal{L}\sb{2}$}}
+            {=}{\text{$\mathcal{L}\sb{\text{\hspace{0.01em}\@ltoolsshorteq}}$}}
+        }
+        {\text{$\mathcal{L}\sb{\text{#1}}$}}
+    }
+    {% Superscript:
+        \str_case:nnF {#1}
+        {
+            {1}{\text{$\mathcal{L}\sb{1}^{\text{#2}}$}}
+            {2}{\text{$\mathcal{L}\sb{2}^{\text{#2}}$}}
+            {=}{\text{$\mathcal{L}\sb{\text{\hspace{0.01em}\@ltoolsshorteq}}^{\text{#2}}$}}
+        }
+        {\text{$\mathcal{L}\sb{\text{#1}}^{\text{#2}}$}}
+    }
+}
+
+\ExplSyntaxOff
+
+\DeclareQuantifier{exists}{\exists}
+\DeclareQuantifier{forall}{\forall}
+
+
+\makeatletter
+\edef\originalbmathcode{%
+    \noexpand\mathchardef\noexpand\@tempa\the\mathcode`\(\relax}
+\def\resetMathstrut@{%
+  \setbox\z@\hbox{%
+    \originalbmathcode
+    \def\@tempb##1"##2##3{\the\textfont"##3\char"}%
+    \expandafter\@tempb\meaning\@tempa \relax
+  }%
+  \ht\Mathstrutbox@\ht\z@ \dp\Mathstrutbox@\dp\z@
+}
+\makeatother
