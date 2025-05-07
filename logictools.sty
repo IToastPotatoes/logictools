@@ -1,5 +1,5 @@
   %% logictools.sty
-  %% Copyright 2005 Miles Min Yin Cheang
+  %% Copyright 2005 Miles Min Yin Cheang  %% did you mean to type 2025?
   %
   % This work may be distributed and/or modified under the
   % conditions of the LaTeX Project Public License, either version 1.3
@@ -20,12 +20,12 @@
 \NeedsTeXFormat{LaTeX2e}
 \ProvidesPackage{logictools}[2025/05/03, v0.1.0 logictools]
 
-\RequirePackage{xparse}
-\RequirePackage{expl3}
-\RequirePackage{stmaryrd}
+\RequirePackage{xparse}% not necessary with a moderately recent latex format
+\RequirePackage{expl3}% not necessary with a moderately recent latex format
+\RequirePackage{stmaryrd}% redefines a significant number of symbols; certainly should not be used with unicode-math
 %\RequirePackage{filecontentsdef}
-\RequirePackage{amsmath}
-\RequirePackage{nicefrac}
+% \RequirePackage{amsmath}% loaded by mathtools below
+\RequirePackage{nicefrac}% dubious; certainly should not be used with unicode-math
 \RequirePackage{bussproofs}
 \RequirePackage{adjustbox}
 \RequirePackage{mathtools}
@@ -34,22 +34,28 @@
 % Provides semantic value function
 % Gives automatic mathcal letters for the structure
 % Optionally gives a variable assignment, where if a single Latin letter is input then it will return the associated Greek symbol.
+% this looks very wrong: Greek symbols in logic should typically be set in maths mode
+% you really don't want \text here ...
+% similar comments apply to other uses below
 \NewDocumentCommand{\semval}{m m o}
 {%
 \IfNoValueTF{#3}
-    {\text{$|#1|_{\mathcal{#2}}$}}
-    {\text{$|#1|_{\mathcal{#2}}^{\textgreek{\text{#3}}}$}}%
-}%
+    {\ensuremath{|#1|_{\mathcal{#2}}}}
+    % you can greatly simplify whatever you call \textgreek
+    % then you can avoid all the switches in-and-out of modes, which will screw 
+    % up spacing etc.
+    {\ensuremath{|#1|_{\mathcal{#2}}^{\textgreek{#3}}}}%
+}
 
 % Provides "y differs from x in at most v" sign
-\newcommand{\difmost}[1]{
-\overset{#1}{\sim}
+\newcommand{\difmost}[1]{ % you are adding a space here
+\overset{#1}{\sim} % and another here
 }
 
 % Provides logical comma symbol
 
-\newcommand{\lcma}{
-\adjustbox{trim={.45\width} 0pt 0pt 0pt ,clip}{$\circ$}
+\newcommand{\lcma}{ % you are adding a space here
+\adjustbox{trim={.45\width} 0pt 0pt 0pt ,clip}{$\circ$} % and another here
 }
 
 % Provides an easy way to notate an unspecified proof from a set of premisses
@@ -65,20 +71,22 @@
 }%
 \IfBooleanT{#3}{\def\@prffrmalign{b}}%
 \IfNoValueTF{#4}%
+% use of \hspace in maths and so on again looks rather icky
+% but maybe bussproofs is already messy (I've mostly used the newer ebproof)
     {\IfNoValueTF{#5}%
-        {\alwaysNoLine%
+        {\alwaysNoLine
         \AxiomC{\fbox{#1}}%
         \UnaryInfC{\raisebox{0.675ex}[3.25ex]{\smash{\vdots}}}%
         \UnaryInfC{#6}%
         \alwaysSingleLine}
-        {\alwaysNoLine%
+        {\alwaysNoLine
         \AxiomC{\adjustbox{fbox,valign=\@prffrmalign}{#1}\adjustbox{valign=\@prffrmalign, rlap}{\hspace{0.1em}\scriptsize#5}}%
         \UnaryInfC{\raisebox{0.675ex}[3.25ex]{\smash{\vdots}}}%
         \UnaryInfC{#6}%
         \alwaysSingleLine}%
     }%
     {\IfNoValueF{#5}{\PackageWarning{logictools}{You shouldn't use both [...] and <...> in one prooffrom. You got lucky, if you had done this the other way around (<...>[...]) you would have gotten strange results.}}%
-    \alwaysNoLine%
+    \alwaysNoLine
     \AxiomC{\adjustbox{fbox,valign=\@prffrmalign}{#1}\adjustbox{valign=\@prffrmalign, rlap}{\hspace{0.1em}\scriptsize$\left[\text{#4}\right]$}}%
     \UnaryInfC{\raisebox{0.675ex}[3.25ex]{\smash{\vdots}}}%
     \UnaryInfC{#6}%
@@ -100,7 +108,7 @@
 \exp_args:Nc \mathchardef { __formal_original_[: }=\char_value_mathcode:n {`[}
 \tl_new:N \l__formal_rbracket_tl
 \tl_new:N \l__formal_lbracket_tl
-\keys_define:nn {options/formal}
+\keys_define:nn {formal/options}
  {
   parstackkern        .muskip_set:N = \l__formal_parstackkern_muskip,
   parinnerpad         .muskip_set:N = \l__formal_parinnerpad_muskip,
@@ -118,22 +126,29 @@
   lastquantskip       .default:n = 4.32mu,
   scriptspace         .default:n = -0.025em,
   
-  partype .tl_set:N = \l__formal_partype_tl,
+  % this isn't how it works: you can't have the same key name be two different
+  % things at the same time: either it sets a tl variable or it is a choice 
+  % (or something else, of course)
+  % l3keys is not like pgfkeys, where you can 'overload' key names
+  % partype .tl_set:N = \l__formal_partype_tl,
   partype .choice:,
   
   partype / double .code:n = 
-  \tl_set:Nn \l__formal_partype_tl {double} % futureproofing, unnecessary
+  % pointless and confusing - you never use this
+  % if you need it in some future version, define it then and
+  % provide some way for users to set it, if appropriate
+  % \tl_set:Nn \l__formal_partype_tl {double} % futureproofing, unnecessary
   \tl_set:Nn \l__formal_rbracket_tl {\rrparenthesis}
   \tl_set:Nn \l__formal_lbracket_tl {\llparenthesis},
   
   partype / single .code:n = 
-  \tl_set:Nn \l__formal_partype_tl {single} % futureproofing, unnecessary
+  % \tl_set:Nn \l__formal_partype_tl {single} % futureproofing, unnecessary
   \tl_set:Nn \l__formal_rbracket_tl {%\char_set_mathcode:nn {41} {41} $)$}
   \use:c{__formal_original_):}}
   \tl_set:Nn \l__formal_lbracket_tl {%\char_set_mathcode:nn {40} {40} $($},
   \use:c{__formal_original_(:}},
   partype / unknown .code:n =
-    \msg_error:nneee { options/formal } { unknown_bracket_type }
+    \msg_error:nneee { formal/options } { unknown_bracket_type }
         { partype } % Name of choice key
         { double , single } % Valid choices
         { \exp_not:n {#1} }, % Invalid choice given
@@ -141,7 +156,7 @@
   partype           .default:n = single,
  }
 % Initialise all the keys
-\keys_set:nn {options/formal}
+\keys_set:nn {formal/options}
      {
       parstackkern,
       parinnerpad,
@@ -153,21 +168,39 @@
       scriptspace,
      }
 
-
-\bool_new:N \l__formal_inside_bool
-\bool_set_false:N \l__formal_inside_bool
+% variables should either be local or global
+% you are naming this local, sometimes setting them locally and sometimes globally
+% - don't!
+% \bool_new:N \g__formal_inside_bool
+% \bool_set_false:N \g__formal_inside_bool
+% guessing this should be global: if you need a local version, too, create another variable
+%   e.g. \l__formal_inside_bool 
+\bool_new:N \g__formal_inside_bool
+\bool_gset_false:N \g__formal_inside_bool
 \bool_new:N \l__formal_escaped_bool
 \bool_set_false:N \l__formal_escaped_bool
+% variables must start \l_ or \g_
+% so no \hd_ or \bdy_ or ...
+% if local, only set locally ever
+% if global, only set globally
+% use a second underscore if the variable is internal: \l__ or \g__
+% the module name comes next - always - and another underscore: 
+%   \l__formal_ or \g__formal_ (internal)
+%   \l_formal_ or \g_formal_ (public)
+% next a description e.g. \l_formal_left
+% finally the type, which should match the string expl3 uses for that type
+% preceded by an underscore
+%   e.g. \g__formal_leftcorner_box (box is the type - not hbox or #1lparbox)
 
-\box_new:N \l__formal_lparbox
-\box_new:N \l__formal_rparbox
+\box_new:N \l__formal_lparbox_box
+\box_new:N \l__formal_rparbox_box
 
 \cs_new_protected:Nn \__formal_llpar_char:
 {
     \bool_if:NTF \l__formal_escaped_bool 
     {\use:c {__formal_original_(:}}
     {
-        \box_use:N \l__formal_lparbox \peek_charcode:NF ( {\mskip \l__formal_parinnerpad_muskip \bool_set_true:N \l__formal_inside_bool}
+        \box_use:N \l__formal_lparbox_box \peek_charcode:NF ( {\mskip \l__formal_parinnerpad_muskip \bool_gset_true:N \g__formal_inside_bool}
     }
 }
 
@@ -176,16 +209,16 @@
     \bool_if:NTF \l__formal_escaped_bool
     {\use:c {__formal_original_):}}
     {
-        \bool_if:NTF \l__formal_inside_bool 
+        \bool_if:NTF \g__formal_inside_bool 
         {\mskip \l__formal_parinnerpad_muskip \mkern \l__formal_italiccorrection_muskip} 
         {}
         
-        \box_use:N \l__formal_rparbox
-        \peek_charcode:NTF ) {\bool_gset_false:N \l__formal_inside_bool} {\bool_gset_true:N \l__formal_inside_bool}
+        \box_use:N \l__formal_rparbox_box
+        \peek_charcode:NTF ) {\bool_gset_false:N \g__formal_inside_bool} {\bool_gset_true:N \g__formal_inside_bool}
     }
 }
 
-\cs_new_protected:Nn \__formal_escapetoggle:
+\cs_new_protected:Nn \__formal_escapele:
 {
     \bool_set_inverse:N \l__formal_escaped_bool
 }
@@ -212,8 +245,8 @@
 
 \cs_new_protected:Npn \__formal_headbox:n #1
 {
-    \box_use:c{hd__formal_
-    #1box}
+    \box_use:c{l__formal_hd_
+    #1_box}
 }
 
 
@@ -231,8 +264,8 @@
 
 \cs_new_protected:Npn \__formal_bodybox:n #1
 {
-    \box_use:c{bdy__formal_
-    #1box}
+    \box_use:c{__formal_bdy_
+    #1_box}
 }
 
 \cs_new_protected:Nn \__formal_quantstackesc:
@@ -254,6 +287,7 @@
         {\__formal_varsub:w}
 }
 
+% this is not a good way to do this b/c it is not at all semantic ...
 \cs_new_protected:Npn \__formal_varsub:w #1/#2]
 {
     \use:c{__formal_original_[:}\nicefrac{#1}{#2}]
@@ -262,19 +296,19 @@
 \NewDocumentEnvironment{formallogic}{O{}}
 {
     \setlength{\parindent}{0pt}
-    \cs_set:Npn \par {$\newline$}
-    \keys_set:nn {options/formal} % Load any settings given in the optional argument.
+    \cs_set:Npn \par {$\newline$} % why maths mode for \newline??
+    \keys_set:nn {formal/options} % Load any settings given in the optional argument.
         {
             #1,
         }
     \setlength\scriptspace{\l__formal_scriptspace_dim}
 
-    \hbox_set:Nn \l__formal_lparbox 
+    \hbox_set:Nn \l__formal_lparbox_box 
         {
             \raisebox{\l__formal_parvoffset_dim}{$\l__formal_lbracket_tl \mkern \l__formal_parstackkern_muskip$}
         }
 
-    \hbox_set:Nn \l__formal_rparbox 
+    \hbox_set:Nn \l__formal_rparbox_box 
         {
             \raisebox{\l__formal_parvoffset_dim}{$\mkern \l__formal_parstackkern_muskip \l__formal_rbracket_tl$}
         }
@@ -283,7 +317,7 @@
     \char_set_mathcode:nn { `( } { "8000 }
     \char_set_active_eq:nN { `) } \__formal_rrpar_char:
     \char_set_mathcode:nn { `) } { "8000 }
-    \char_set_active_eq:nN { `" } \__formal_escapetoggle:
+    \char_set_active_eq:nN { `" } \__formal_escapele:
     \char_set_mathcode:nn { `" } { "8000 }
     \char_set_active_eq:nN { `| } \__formal_quantstackenter:
     \char_set_mathcode:nn { `| } { "8000 }
@@ -299,43 +333,43 @@
 % make quants
 \NewDocumentCommand{\DeclareQuantifier}{m m O{0mu} O{0mu}}
 {
-    \muskip_gzero_new:c {l__formal_#1befmuskip}
-    \muskip_gset:cn {l__formal_#1befmuskip} {#3}
-    \muskip_gzero_new:c {l__formal_#1intmukern}
-    \muskip_gset:cn {l__formal_#1intmukern} {#4}
-    \box_gclear_new:c {hd__formal_#1box}
-    \hbox_gset:cn {hd__formal_#1box} 
+    \muskip_gzero_new:c {g__formal_#1bef_muskip}
+    \muskip_gset:cn {g__formal_#1bef_muskip} {#3}
+    \muskip_gzero_new:c {g__formal_#1int_mukern}
+    \muskip_gset:cn {g__formal_#1int_mukern} {#4}
+    \box_gclear_new:c {g__formal_hd_#1_box}
+    \hbox_gset:cn {g__formal_hd_#1_box} 
         {
-            \ensuremath{#2 \mkern \use:c{l__formal_#1intmukern}}
+            \ensuremath{#2 \mkern \use:c{g__formal_#1int_mukern}}
         }
-    \box_gclear_new:c {bdy__formal_#1box}
-    \hbox_gset:cn {bdy__formal_#1box} 
+    \box_gclear_new:c {g__formal_bdy_#1_box}
+    \hbox_gset:cn {g__formal_bdy_#1_box} 
         {
-            \ensuremath{\mskip \use:c{l__formal_#1befmuskip} #2 \mkern \use:c{l__formal_#1intmukern}}
+            \ensuremath{\mskip \use:c{g__formal_#1bef_muskip} #2 \mkern \use:c{g__formal_#1int_mukern}}
         }
 }
 \NewDocumentCommand{\LDeclareQuantifier}{m m O{0mu} O{0mu}}
 {
-    \muskip_zero_new:c {l__formal_#1befmuskip}
-    \muskip_set:cn {l__formal_#1befmuskip} {#3}
-    \muskip_zero_new:c {l__formal_#1intmukern}
-    \muskip_set:cn {l__formal_#1intmukern} {#4}
-    \box_clear_new:c {hd__formal_#1box}
-    \hbox_set:cn {hd__formal_#1box} 
-        {
-            \ensuremath{#2 \mkern \use:c{l__formal_#1intmukern}}
+    \muskip_zero_new:c {l__formal_#1bef_muskip}
+    \muskip_set:cn {l__formal_#1bef_muskip} {#3}
+    \muskip_zero_new:c {l__formal_#1int_mukern}
+    \muskip_set:cn {l__formal_#1int_mukern} {#4}
+    \box_clear_new:c {l__formal_hd_#1_box}
+    \hbox_set:cn {l__formal_hd_#1_box} 
+        { % hbox is always text mode
+            ${#2 \mkern \use:c{l__formal_#1int_mukern}$
         }
-    \box_clear_new:c {bdy__formal_#1box}
-    \hbox_set:cn {bdy__formal_#1box} 
-        {
-            \ensuremath{\mskip \use:c{l__formal_#1befmuskip} #2 \mkern \use:c{l__formal_#1intmukern}}
+    \box_clear_new:c {l__formal_bdy_#1_box}
+    \hbox_set:cn {l__formal_bdy_#1_box} 
+        { % hbox is always text mode
+            ${\mskip \use:c{l__formal_#1bef_muskip} #2 \mkern \use:c{l__formal_#1int_mukern}$
         }
 }
 
 % Use this command to declare settings that will stay for the rest of the document!
 \NewDocumentCommand \logictoolsoptions { m }
 {
-\keys_set:nn {options/formal} 
+\keys_set:nn {formal/options} 
     {
     #1 
     }
@@ -343,19 +377,25 @@
 \ExplSyntaxOff
 
 % Command that puts things inside the above environment, can be used inline.
-\newcommand{\fmllgc}[1]{
+\newcommand{\fmllgc}[1]{ % you are adding a space here
 \begin{formallogic}#1
-\end{formallogic}
+\end{formallogic} % you are adding a space here
 }
 
 % Consistent naming scheme for logical operators
-\newcommand{\limplies}{\rightarrow}
-\newcommand{\liff}{\leftrightarrow}
+% shouldn't these be declared as maths symbols of the appropriate class?
+% \newcommand{\limplies}{\rightarrow}
+\newcommand*{\limplies}{\mathbin{\rightarrow}}
+% \newcommand{\liff}{\leftrightarrow}
+\newcommand*{\liff}{\mathbin{\leftrightarrow}}
 %--------------------------------------------------
 
 \ExplSyntaxOn
 % Some commands for turning latin characters into greek ones
-\NewDocumentCommand{\ucgreek}{m}
+% needs a different name!
+% but, whatever you call it, why can't you just do this?
+\NewDocumentCommand{\textgreek}{m}
+% \NewDocumentCommand{\ucgreek}{m}
  {
   \str_case_e:nnF { #1 }
    {
@@ -385,13 +425,13 @@
     {X}{\Xi}
     {Y}{\Psi}
     {Z}{\mathrm{Z}}
-   }
-   {#1}
- }
-\NewDocumentCommand{\lcgreek}{m}
- {
-  \str_case_e:nnF { #1 }
-   {
+%    }
+%    {#1}
+%  }
+% \NewDocumentCommand{\lcgreek}{m}
+%  {
+%   \str_case_e:nnF { #1 }
+%    {
     {a}{\alpha}
     {b}{\beta}
     {c}{\varsigma}
@@ -422,17 +462,20 @@
    {#1}
  }
 
-% A way to call these commands on "\text{stuff}" instead of just "stuff"
-\NewDocumentCommand{\textgreek}{m}
-{
-    \tl_set:Nn \l__arg_tl { #1 }
-    \regex_replace_all:nnN {\c{text}\{([a-z])\}}{\c{lcgreek}{\1}}
-    \l__arg_tl
-    \regex_replace_all:nnN {\c{text}\{([A-Z])\}}{\c{ucgreek}{\1}}
-    \l__arg_tl
-
-    \tl_use:N \l__arg_tl
-}
+% % don't use undeclared variables
+% \tl_new:N \l__formal_arg_tl
+% % A way to call these commands on "\text{stuff}" instead of just "stuff"
+% % needs a different name!
+% \NewDocumentCommand{\textgreek}{m}
+% { % more generally, I suspect this is not really wise
+%     \tl_set:Nn \l__formal_arg_tl { #1 }
+%     \regex_replace_all:nnN {\c{text}\{([a-z])\}}{\c{lcgreek}{\1}}
+%     \l__formal_arg_tl
+%     \regex_replace_all:nnN {\c{text}\{([A-Z])\}}{\c{ucgreek}{\1}}
+%     \l__formal_arg_tl
+%
+%     \l__formal_arg_tl
+% }
 
 \ExplSyntaxOff
 
@@ -440,15 +483,18 @@
 %-----------------------------------------------------------------------------
 
 % Shorter equals sign
-\makeatletter
 \newcommand{\@ltoolsshorteq}{%
   \settowidth{\@tempdima}{$x$}% Width of x in mathfont
   \resizebox{\@tempdima}{\height}{=}%
 }
-\makeatother
 
 \ExplSyntaxOn
 % Provides the symbols for l-one, l-two, l-equals and nice looking superscript
+% using \text here again seems wrong - I guess the idea is to \ensuremath
+% I've been told I should never use \ensuremath, but I tend to in marking up logic ...
+% I think that would be better than using \text this way, unless somebody like egreg
+% or one of the latex team has said otherwise
+% \hspace is a text space command and not maths mode
 \NewDocumentCommand{\lsym}{m o}%
 {
 \IfNoValueTF{#2}
@@ -478,7 +524,6 @@
 \DeclareQuantifier{forall}{\forall}
 
 
-\makeatletter
 \edef\originalbmathcode{%
     \noexpand\mathchardef\noexpand\@tempa\the\mathcode`\(\relax}
 \def\resetMathstrut@{%
@@ -489,4 +534,3 @@
   }%
   \ht\Mathstrutbox@\ht\z@ \dp\Mathstrutbox@\dp\z@
 }
-\makeatother
