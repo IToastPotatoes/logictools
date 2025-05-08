@@ -26,7 +26,7 @@ Copyright and license
 ---------------------
 
 logictools.sty
-Copyright 2005 Miles Min Yin Cheang
+Copyright 2025 Miles Min Yin Cheang
 
 This work may be distributed and/or modified under the
 conditions of the LaTeX Project Public License, either version 1.3
