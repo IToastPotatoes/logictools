@@ -1,6 +1,9 @@
 \documentclass{article}
+
 \usepackage{setspace}
+\usepackage{anyfontsize}
 \usepackage{amssymb}
+\usepackage{mathtools}
 \usepackage[margin=1.45in]{geometry}
 \usepackage{microtype}
 \usepackage{fancyvrb}
@@ -31,6 +34,38 @@
     urlcolor=black
 }
 
+% nice box
+\usepackage{dashbox}
+
+% margins
+\makeatletter
+\newcommand{\importantsymbol}{\color{DarkBlue}\mathbin{\mathpalette\make@circled!}}
+\newcommand{\make@circled}[2]{%
+  \ooalign{$\m@th#1\smallbigcirc{#1}$\cr\hidewidth$\m@th#1#2$\hidewidth\cr}%
+}
+\newcommand{\smallbigcirc}[1]{%
+  \hbox{\scalebox{1.5}{$\m@th#1\bigcirc$}}%
+}
+\renewcommand{\importantsymbol}{\fboxsep=1.5pt\fboxrule=1pt\color{DarkBlue}\dashbox[10pt][c]{\color{DarkBlue}\textbf{!}}}
+\makeatother
+\usepackage{marginnote}
+\reversemarginpar
+
+%
+\newcommand{\versionnum}{0.1.1.}
+\AtBeginShipoutNext{%
+\AtBeginShipoutUpperLeft{%
+\put(\dimexpr\paperwidth-1pt\relax,-9pt){\makebox[0pt][r]{\setlength{\fboxsep}{3pt}\framebox{\textbf{Version:} \versionnum}}}%
+}%
+}
+
+
+\newcommand{\OddPageContent}
+{
+    
+}
+
+
 % Super easy proof annotations in the style that Volker likes, with good(ish) kerning.
 \newcommand{\andlabel}[1]{
 \RightLabel{\scriptsize($\land$\hspace{1px}#1)}
@@ -60,6 +95,10 @@
 \RightLabel{\scriptsize($\exists$\hspace{0.5px}#1)}
 }
 
+% Consistent naming scheme for logical operators
+\newcommand{\limplies}{\rightarrow}
+\newcommand{\liff}{\leftrightarrow}
+
 \makeatletter
 \def\shorteq{\@ltoolsshorteq}
 \makeatother
@@ -82,22 +121,59 @@ Other than this, the option `oxford' will load a few neat macros that might be o
 \newpage
 \section{The formallogic environment}
 \subsection{Introduction}
-
-This interface, accessed through the environment named \verb|formallogic|, or the command \verb|\fmllgc{<content>}|, helps to type formal logic in \LaTeX. Here are some of its uses:
+\DeclareQuantifier{e}{\exists}[0mu][1.9mu]
+\DeclareQuantifier{f}{\forall}[0mu][0mu]
+This interface, accessed through the environment named \verb|formallogic|, or the command \verb|\fmllgc{<content>}|, helps to type formal logic in \LaTeX. Here is a demo\footnote{Zooming in is recommended.}:
 \logictoolsoptions{partype=single,italiccorrection=1mu, quantskip=5mu,lastquantskip=5mu}
 \begin{center}
-\begin{tabular}{c|c}
-   Code:  & Output: \\ \hline
-   \verb!|forall, x ; exists, y| (Ryx)!  & \fmllgc{|forall,x;exists,y| (Ryx)} \\
-   \verb!|f,x;e,y|(Ryx)!  & \fmllgc{|forall,x;exists,y| (Ryx)} \\
-    \verb|((P \land Q) \liff R)|& \logictoolsoptions{partype=double,italiccorrection=1mu, quantskip=5mu,lastquantskip=5mu,parinnerpad=5mu,parvoffset=0.17ex} \fmllgc{((P \land Q) \liff R))}\\
-    \verb|((P \land Q) \liff R)|& \logictoolsoptions{partype=single,italiccorrection=1mu, quantskip=5mu,lastquantskip=5mu,parinnerpad=1mu,parstackkern=-3mu, parvoffset=0.17ex} \fmllgc{((P \land Q) \liff R))}\\
-    \verb|((P \land Q) \liff R)|& \logictoolsoptions{partype=single,italiccorrection=1mu, quantskip=5mu,lastquantskip=5mu,parinnerpad=2.5mu,parstackkern=5mu, parvoffset=0.17ex} \fmllgc{((P \land Q) \liff R))}
+\begin{tabular}{c|c|c}
+   Code:  & Output: & Default \LaTeX: \\ \hline
+   \verb!|forall, x ; exists, y| (Ryx)!
+   & \fmllgc{|forall,x;exists,y| (Ryx)}
+   & $\forall x \exists y (Ryx)$
+   \\
+   
+   \verb!|f,x;e,y|(Ryx)!
+   & \fmllgc{|f,x;e,y| (Ryx)}
+   & $\forall x \exists y (Ryx)$
+   \\
+   
+    \verb|((P \land Q) \liff R)|
+    &\logictoolsoptions{partype=double,italiccorrection=2mu,quantskip=5mu,lastquantskip=5mu,parinnerpad=5mu,parvoffset=0.14ex} \fmllgc{((P \land Q) \liff R)}
+    & $\llparenthesis \llparenthesis P\land Q \rrparenthesis \liff R\rrparenthesis$
+    \\
+    \verb|((P \land Q) \liff R)|
+    & \logictoolsoptions{partype=single,italiccorrection=1mu,quantskip=5mu,lastquantskip=5mu,parinnerpad=2mu,parstackkern=-3mu, parvoffset=0.15ex} \fmllgc{((P \land Q) \liff R)} 
+    & $((P\land Q)\liff R)$
+    \\
+    
+    \verb|((P \land Q) \liff R)|
+    & \logictoolsoptions{partype=single,italiccorrection=1mu,quantskip=5mu,lastquantskip=5mu,parinnerpad=2mu,parstackkern=2mu, parvoffset=0.17ex} \fmllgc{((P \land Q) \liff R)}
+    & $((P\land Q)\liff R)$
 \end{tabular} 
 \end{center}
 
+The first and foremost difference that can be observed is the readability of the code. Certainly where we wish to use $\llparenthesis\, \cdots\, \rrparenthesis$, the code for the default \LaTeX\ output looks like:
 
-You will be shown how to accomplish every one of these in the following documentation. Note that there are various user-defined parameters controlling the typesetting (e.g. spacing, kerning, parenthesis style); this is how the same code can produce wildly different outputs. Furthermore, the user can control certain parts of the syntax (e.g. the names of quantifiers).
+\begin{center}
+    \verb|$\llparenthesis\llparenthesis P\land Q\rrparenthesis\liff R\rrparenthesis$|
+\end{center}
+
+Which can be shortened with shortcut macros but is still essentially unreadable. The case is arguably even worse for quantifiers, where we need to achieve nice spacing:
+
+\begin{center}
+    \verb|$\forall\:\! x\ \exists\, y \ \, (Ryx)$|\rlap{ \ \  {\scriptsize\raisebox{0.3ex}{(What a mess!)}}}
+
+    $\to \forall\:\! x\ \exists\, y \ \, (Ryx)$
+
+    \mbox{}\clap{vs.}$\hphantom{\to{\kern2.5pt}}\fmllgc{|f,x;e,y|\,(Ryx)}$\rlap{\quad \scriptsize\raisebox{0.1ex}{(from formallogic)}}
+\end{center}
+
+In the table, \texttt{forall} and \texttt{exists} reference direct copies of \verb|\forall| and \verb|\exists|. Logictools declares these two quantifiers by default. They will inherit the ugly kerning present for these symbols in \LaTeX's default math font (see table row 1). Good math fonts will not have this bug, and so fixing it will not be necessary in either default \LaTeX\ or in formallogic. For the above we declared quantifiers\footnote{The next section covers quantifier declaration in detail} \texttt{f} and \texttt{e} with better spacing than the \LaTeX\ default (as seen in row 2). The resulting syntax is clearly superior to what can be achieved without this environment.
+
+Note that there are various user-defined parameters controlling the typesetting (e.g. spacing, kerning, parenthesis style); this is how the same code produces markedly different outputs. Furthermore, the user can customise some of the syntax (e.g. the names of quantifiers). This means that just a few lines of code suffice to set the style and syntax for an entire document. The benefits of this approach over manual typesetting should be obvious.
+
+More useful syntactic shortcuts may be found in the \hyperlink{subsubsection.2.3.2}{\textsc{other syntax}} section. The next section covers quantifiers in more detail (primarily, quantifier syntax and declaration).
 \subsection{Quantifier stacks}
 Quantifier stacks are a concept introduced for typesetting logical quantifiers:
 
@@ -109,53 +185,62 @@ Quantifier stacks are a concept introduced for typesetting logical quantifiers:
 
 Quantifier stacks are used by the formallogic environment. They are delimited by `\texttt{|}'. A quantifier stack is made up of quantifiers, written in the form \verb|<label>,<argument>|. The label consists of some text that indicates which quantifier will be used, while the argument can be any math mode code. These quantifiers are separated by `;'. The formallogic environment processes these stacks, turning them into a fully typeset sequence of quantifiers. 
 
-Spacing on either side of the label and argument is trimmed, but spacing inside the label is not. This means `for all' is a distinct label from `forall'.
-\newpage
+Spacing on either side of the label and argument is trimmed, but spacing inside the label is not. This means `for all' is a distinct label from `forall'. Officially, only Latin alphabetical characters are supported for labels; although, other characters will \textit{probably} work as long as they can be used in expl3 csnames.
 \subsubsection{Declaring quantifiers}
 
 A declared quantifier has the following form:
 \begin{center}
-\input{tikz/quantdiagram}
+\fboxsep=2pt \fboxrule=1sp
+${\color{DarkGray}\mathllap{\texttt{...}}}
+\underbracket[1pt][4pt]{\mskip20mu}_{\mathclap{\texttt{<left padding>}}}
+\fbox{\vphantom{\texttt{<argument>}}\smash{\texttt{<command>}}}
+\underbracket[1pt][4pt]{\mkern20mu}_{\mathclap{\texttt{<right padding>}}}
+\color{DarkGray}\mathrlap{\texttt{...}}$
+
+\vspace{2ex}
+
+\Large$\mathllap{\text{\color{DarkGray}\small e.g.} \hspace{0ex} }
+{\underbracket[1pt][4pt]{\mskip20mu}_{\mathclap{\texttt{10mu}}}}
+\exists !
+{\underbracket[1pt][4pt]{\mskip10mu}_{\mathclap{\texttt{5mu}}}}
+\color{DarkGray}x$
 \end{center}
 
 \noindent \textbf{Syntax for quantifier declaration:}
 \begin{center}\verb|\DeclareQuantifier{<label>}{<command>}[<left pad>][<right pad>]|\end{center}
 
-\vskip-1.5ex This command will globally declare (or redeclare) a quantifier with the associated properties. The label consists of some text that refers to this quantifier; the command should be a LaTeX command providing the quantifier symbol; left and right padding are optional padding values on either side of the command. For instance: \verb|\DeclareQuantifier{ex!}{\exists !}[5mu][1.5mu]| provides a quantifier that can be used like: \verb'|ex!,x;forall,y|' $\to$ \DeclareQuantifier{ex!}{\exists !}[5mu][1.5mu]\fmllgc{|ex!,x;forall,y|}.
+\vskip-1.5ex This command globally declares (or redeclares) a quantifier with the associated properties. The label consists of some text that refers to this quantifier; the command should be a LaTeX command providing the quantifier symbol; left and right padding are optional padding values on either side of the command. For instance: \verb|\DeclareQuantifier{ex!}{\exists !}[5mu][1.5mu]| provides a quantifier that can be used like: \verb'|ex!,x;forall,y|' $\to$ \DeclareQuantifier{ex!}{\exists !}[5mu][1.5mu]\fmllgc{|ex!,x;forall,y|}$\dots$
 
 \begin{center}\verb|\LDeclareQuantifier{<label>}{<command>}[<left pad>][<right pad>]|\end{center} 
 
-\vskip-1.5ex This command does the same thing, but locally. With this, one can quickly redefine a quantifier in the middle of the environment, and not worry about the changes carrying over to other instances of the environment.
-\subsection{Other syntax}
-\begin{itemize}
-    \item Parentheses written consecutively (without spaces) will become parenthesis stacks, and use \texttt{parstackkern} instead of \texttt{parinnerpad} as spacing.
-    \item \texttt{[<arg 1>/<arg 2>]} $\to\,[\nicefrac{\texttt{<1>}}{\texttt{<2>}}]$, allowing one to write easy variable substitutions inline\footnote{Note that this means `\texttt{[}' is by default active in the syntax, and so requires escaping if one wishes to use it without following it with `\texttt{/}' and then `\texttt{]}'.}.
-    \item \texttt{.=} $\to\,\doteq$, providing quick access to \verb|\doteq|.
-\end{itemize}
+\vskip-1.5ex This command does the same thing, but locally. With this, one can quickly redefine a quantifier in the middle of an environment, and not worry about the changes carrying over to the rest of the document. 
+\\\mbox{}
 
-One can use \texttt{"<content>"} within the environment to escape \texttt{<content>}, preventing it from being parsed by the environment; this is useful when one wishes to use a character that is active in the syntax of the environment. The delimiter used here is the double quote, \texttt{"} (U+0022). 
-
-For example, this can be used to write a function with single parentheses in a double parenthesis environment, or a list using commas inside of a quantifier stack\footnote{Actually, `\texttt{,}' and `\texttt{;}' only need escaping when inside of a quantifier stack, delimited by `\texttt{|}'.}:
+\marginnote{\importantsymbol}\noindent Local definitions overwrite any global definitions until their group is closed. Thus, if one writes:
 \begin{Verbatim}[numbers=left,xleftmargin=5mm]
-\logictoolsoptions{partype=double, parinnerpad=3.5mu}
+\begingroup
+\LDeclareQuantifier{ex}{\exists}[1mu][1mu]
 \begin{formallogic}
-|forall,"x_1,x_2,x_3,\ldots";exists,y|(f"(y)"=x_1+x_2+x_3+\ldots\land Py)
+    \DeclareQuantifier{ex}{\forall}
+    |ex,x|(Px)
 \end{formallogic}
+\endgroup |
+\fmllgc{|ex,x|(Px)}
 \end{Verbatim}
-Produces: \hspace{4.25em}
-\logictoolsoptions{partype=double, parinnerpad=3.5mu}
- \begin{formallogic}
-    |forall,"x_1,x_2,x_3,\ldots"; exists,y|
-    ( f"(y)" = x_1+x_2+x_3+\ldots \land Py)
-    \end{formallogic} \hfill
 
-\vspace{1.5ex}
-
-The only syntax that is not escaped like this is \texttt{.=} $\to \,\doteq$, since checks for escaping slightly lower performance, and this can already be escaped with a space between the two characters.
+The output is:
+\begingroup
+\LDeclareQuantifier{ex}{\exists}[1mu][1mu]
+\begin{formallogic}
+    \DeclareQuantifier{ex}{\forall}
+    |ex,x|(Px)
+\end{formallogic}
+\endgroup |
+\fmllgc{|ex,x|(Px)}, since the global \verb|\DeclareQuantifier{ex}{\forall}| does not come into effect until after the group is closed. As a word of warning, this means that using \verb|\LDeclareQuantifier| at the top level will make the declared quantifier immune to change by \verb|\DeclareQuantifier| for the rest of the document, as the group never closes.
 
 \subsection{Typesetting features}
 \subsubsection{Customisation}
-The formallogic environment offers many customisation options through user-adjustable keys. They may be changed with the command \verb|\logictoolsoptions{<key>=<value>, ... }| (in either the document or the preamble). A list of key-value pairs may also be given in an optional argument to the formallogic environment. The following keys are available:
+The formallogic environment offers many customisation options through user-adjustable keys. They may be changed with the command \verb|\logictoolsoptions{<key>=<value>, ... }| (in either the document or the preamble). A list of key-value pairs may also be given in an optional argument to the formallogic environment or command. The following keys are available:
 \newcolumntype{Y}{>{\hsize=.5\hsize\linewidth=\hsize}X}
 \setlength{\tabcolsep}{6pt} % Default value: 6pt
 \renewcommand{\arraystretch}{1.5} % Default value: 1
@@ -170,9 +255,32 @@ The formallogic environment offers many customisation options through user-adjus
    \texttt{parvoffset} & \raggedright Amount to raise parentheses by; helps center them on text in some fonts. & ex & \texttt{0.2ex} \\
    \texttt{quantskip} & \raggedright Default skip inserted between quantifiers. & mu & \texttt{4.32mu} \\
    \texttt{lastquantskip} & \raggedright Default skip inserted after last quantifier. & mu & \texttt{4.32mu} \\
-   \texttt{scriptspace} & \raggedright Determines space after sub/superscript, same as the \LaTeX\ primitive. & em & \texttt{-0.025em} \\
+   \texttt{scriptspace} & \raggedright Determines space after sub/superscript, same as the \LaTeX\ primitive. & em & \texttt{-0.025em} 
 \end{tabularx} 
 \end{center}
+\subsubsection{Other syntax}\label{sec:othersyntax}
+\begin{itemize}
+    \item Parentheses written consecutively (without spaces) will become parenthesis stacks, and use \texttt{parstackkern} instead of \texttt{parinnerpad} as spacing.
+    \item \texttt{[<arg 1>/<arg 2>]} $\to\,\fmllgc[partype=double]{[\texttt{<1>}/\texttt{<2>}]}$, allowing one to write easy variable substitutions inline\footnote{Note that this means `\texttt{[}' is by default active in the syntax, and so requires escaping if one wishes to use it without following it with `\texttt{/}' and then `\texttt{]}'.}. This uses the package \texttt{xfrac}, so fraction appearance is changed through that interface\footnote{\texttt{xfrac} likes to generate warnings about font size substitutions with some fonts; loading a package like \texttt{anyfontsize} should fix this.}.
+    \item \texttt{.=} $\to\,\doteq$, providing quick access to \verb|\doteq|.
+\end{itemize}
+
+\marginnote{$\importantsymbol$}\noindent One can use \texttt{"<content>"} within the environment to escape \texttt{<content>}, preventing it from being parsed by the environment; this is useful when one wishes to use a character that is active in the syntax of the environment. The delimiter used here is the double quote, \texttt{"} (U+0022). 
+\\\mbox{}
+
+For example, this can be used to write a function with single parentheses in a double parenthesis environment, or a list using commas inside of a quantifier stack\footnote{To be exact, `\texttt{,}' and `\texttt{;}' only need escaping when inside of a quantifier stack, delimited by `\texttt{|}'.}:
+\begin{Verbatim}[numbers=left,xleftmargin=5mm]
+\logictoolsoptions{partype=double, parinnerpad=3.5mu}
+\begin{formallogic}
+|forall,"x_1,x_2,x_3,\ldots";exists,y|(f"(y)"=x_1+x_2+x_3+\ldots\land Py)
+\end{formallogic}
+\end{Verbatim}
+Produces: \hspace{4.25em}
+\logictoolsoptions{partype=double, parinnerpad=3.5mu}
+ \begin{formallogic}
+    |forall,"x_1,x_2,x_3,\ldots"; exists,y|
+    ( f"(y)" = x_1+x_2+x_3+\ldots \land Py)
+    \end{formallogic} \hfill
 
 \newpage
 \section{The `oxford' package option}\fboxsep=3pt
@@ -218,14 +326,14 @@ This package option adds a few macros for common notations at University of Oxfo
 \vspace{1ex}
 \VerbatimFootnotes
 \footnotetext{The macro \verb|\andlabel{#1}| gives \verb|\RightLabel{\scriptsize($\land$\hspace{1px}#1)}|. }
-The output is not ideal; introducing discharged assumptions puts the box off center in an annoying way, and the \verb|\vdots| are not aligned correctly. The following command achieves better output with nicer syntax:
-\begin{center} \verb|\prooffrom{<1>}|$\underbracket[1pt][1pt]{\mskip20mu}_{\mathclap{\texttt{<2>}}}$\verb|{<3>}| \end{center}
+The output is not ideal; introducing discharged assumptions puts the box off center in an annoying way, and the \verb|\vdots| are not aligned correctly. The following command achieves better output\footnote{Note, if one loads something that redefines \verb|$\vdots$|, its vertical spacing might get ugly (as of logictools v0.1.1).} with nicer syntax:\setlength{\dashdash}{2pt}\setlength{\dashlength}{4pt}
+\begin{center}\fboxsep=2pt\verb|\prooffrom{<1>}|$\kern1pt\raisebox{1.25pt}{\dashbox[18pt][c]{\scriptsize\texttt{<2>}}}\kern1pt$\verb|{<3>}| \end{center}
 \noindent \texttt{<2>} \hspace{0.2em}=\begin{minipage}[t]{0.9\linewidth}
     \begin{center}\adjustbox{fbox}{Either `\textasciicircum' (for superscript), `\verb|_|' (for subscript), or nothing (for centered script).}
 
-\vspace{0.5ex}
+\vspace{0.4ex}
     
-    +
+    followed by\dots
 
 \vspace{1ex}
     
@@ -234,7 +342,7 @@ The output is not ideal; introducing discharged assumptions puts the box off cen
 
 \vspace{2ex}
 
-\noindent So \verb|\prooffrom{$\pi$}{$\psi$}|, \verb|\prooffrom{$\pi_1$}^[$\varphi$]{$\phi$}| become: 
+\noindent E.g. \verb|\prooffrom{$\pi$}{$\psi$}|, \verb|\prooffrom{$\pi_1$}^[$\varphi$]{$\phi$}| give: 
 \begin{prooftree}
     \prooffrom{$\pi$}{$\psi$}
     \prooffrom{$\pi_1$}^[$\varphi$]{$\phi$}
@@ -258,7 +366,7 @@ The output is not ideal; introducing discharged assumptions puts the box off cen
 \hrule
 \begin{center}\verb|\semval{<sent.>}{<structure>}[<var.assign.>]|\end{center}
 
-\noindent Gives \semval{\texttt{<sent.>}}{A}[a], the semantic value of some sentence over model $\mathcal{A}$ with variable assignment $\alpha$. The input \texttt{<structure>} is converted to \verb|\mathcal{...}|. If the input \texttt{<var.assign.>} is a single latin letter (e.g. `a', `b', `d' `g'), it is converted into an appropriate greek one\footnote{This respects capitalisation, so one gets $\gamma$ from `g', and $\Gamma$ from `G'.}.
+\noindent Gives \semval{\texttt{<sent.>}}{A}[a], the semantic value of some sentence over model $\mathcal{A}$ with variable assignment $\alpha$. The input \texttt{<structure>} is converted to \verb|\mathcal{...}|. If the input \texttt{<var.assign.>} is a single latin letter (e.g. `a', `b', `d' `g'), it is converted into an appropriate greek one\footnote{This respects capitalisation, so one gets $\gamma$ from `g', and $\Gamma$ from `G'. The command used is \verb|\latinletterstogreek|.}.
 \\
 \hrule
 \begin{center}\verb|\lsym{<language>}[<signature>]|\footnote{This command loads even without the package option `oxford'. Why? Because I couldn't get it to work otherwise.}\end{center}
@@ -266,12 +374,375 @@ The output is not ideal; introducing discharged assumptions puts the box off cen
 \noindent Gives \lsym{$\circ$}, where $\circ$ can be 1,2,= or something else. Also optionally allows the addition of a superscript, for a signature. The `=' uses \verb|\@ltoolsshorteq|, `$\shorteq$', which is prettier in most fonts.
 \\
 \hrule
+\newpage
+\section{Implementation}
+\subsection{formallogic}
 
-%parstackkern        .muskip_set:N = \l__formal_parstackkern_muskip,
-%  parinnerpad         .muskip_set:N = \l__formal_parinnerpad_muskip,
-%  italiccorrection    .muskip_set:N = \l__formal_italiccorrection_muskip,
-%  parvoffset          .dim_set:N = \l__formal_parvoffset_dim,
-%  quantskip           .muskip_set:N = \l__formal_quantskip_muskip,
-%  lastquantskip       .muskip_set:N = \l__formal_lastquantskip_muskip,
-%  scriptspace         .dim_set:N = \l__formal_scriptspace_dim,
+First, we save the original meaning of each symbol used in the syntax to its own csname. We do this on startup instead of at the beginning of every environment because it saves on performance, and 99\% of the time it won't matter. This does mean that if some other package messes with the definition of these symbols, logictools will not notice; the user can fix this if they so wish by updating the definition of \verb|\__formal_original_X:| manually.
+\begin{Verbatim}[numbers=left,xleftmargin=5mm]
+% Thanks to everyone at TeX-exchange for teaching me how to use expl3!
+\ExplSyntaxOn
+\exp_args:Nc \mathchardef { __formal_original_): }=\char_value_mathcode:n {`)}
+\exp_args:Nc \mathchardef { __formal_original_(: }=\char_value_mathcode:n {`(}
+\exp_args:Nc \mathchardef { __formal_original_|: }=\char_value_mathcode:n {`|}
+\exp_args:Nc \mathchardef { __formal_original_;: }=\char_value_mathcode:n {`;}
+\exp_args:Nc \mathchardef { __formal_original_.: }=\char_value_mathcode:n {`.}
+\exp_args:Nc \mathchardef { __formal_original_[: }=\char_value_mathcode:n {`[}
+\end{Verbatim}
+
+Then we initialise some error message variables, and token lists for our parentheses:
+\begin{Verbatim}[numbers=left,xleftmargin=5mm,firstnumber=9]
+\msg_new:nnnn { logictools } { quantnoglobaldeferror }{}{} 
+% msg if global def for a quantifier went missing
+\msg_new:nnnn { logictools } { quantneverdeferror }{}{} 
+% msg if quant is never defined at all
+\tl_new:N \l__formal_rparchar_tl % the right parenthesis used in formallogic
+\tl_new:N \l__formal_lparchar_tl % the left parenthesis used in formallogic
+\end{Verbatim}
+
+Now we define all the keys for customisation, and initialise them: \fvset{numbers=left,xleftmargin=5mm,firstnumber=last}
+\vspace{\topsep}
+\begin{Verbatim}[numbers=left,xleftmargin=5mm,firstnumber=16,vspace=0pt]
+\keys_define:nn {formal/options}
+ {
+\end{Verbatim}
+\qquad\quad $\cdots$
+\begin{Verbatim}[numbers=left,xleftmargin=5mm,firstnumber=50,vspace=0pt]
+ }
+\end{Verbatim}
+\begin{Verbatim}[vspace=0pt]
+\keys_set:nn {formal/options}
+    {
+    parstackkern,
+    parinnerpad,
+    italiccorrection,
+    parvoffset,
+    quantskip,
+    lastquantskip,
+    partype,
+    scriptspace,
+    }
+\end{Verbatim}
+\vspace{\topsep}
+Now we set up some booleans:
+\begin{Verbatim}
+\bool_new:N \l__formal_rparpadreq_bool 
+\bool_set_true:N \l__formal_rparpadreq_bool
+\bool_new:N \l__formal_escaped_bool 
+\bool_set_false:N \l__formal_escaped_bool
+\end{Verbatim}
+\verb|\l__formal_rparpadreq_bool| will tell us when a right parenthesis `)' needs extra padding (i.e. when it surrounds content); meanwhile, \verb|\l__formal_escaped_bool| can be queried to tell us if we are between two quotation marks. 
+
+\noindent Next, we define commands that will be used for the left and right parentheses:
+\begin{Verbatim}
+\box_new:N \l__formal_lpar_box % the box for parentheses
+\box_new:N \l__formal_rpar_box
+
+\cs_new_protected:Nn \__formal_llpar_char:
+{
+    \bool_if:NTF \l__formal_escaped_bool 
+    {\use:c {__formal_original_(:}}
+    {
+        \box_use:N \l__formal_lpar_box 
+        \peek_charcode:NF ( {\mskip \l__formal_parinnerpad_muskip}
+    }
+}
+
+\cs_new_protected:Nn \__formal_rrpar_char:
+{
+    \bool_if:NTF \l__formal_escaped_bool
+    {\use:c {__formal_original_):}}
+    {
+        \bool_if:NTF \l__formal_rparpadreq_bool 
+        {\mskip \l__formal_parinnerpad_muskip 
+        \mkern \l__formal_italiccorrection_muskip} 
+        {}
+        
+        \box_use:N \l__formal_rpar_box
+        \peek_charcode:NTF ) 
+        {\bool_set_false:N \l__formal_rparpadreq_bool} 
+        {\bool_set_true:N \l__formal_rparpadreq_bool}
+    }
+}
+\end{Verbatim}
+First, we use boxes here to take arbitrary typeset content. Eventually, we will be setting these to the correct parenthesis commands, with any extra spacing commands. Using boxes lets us skip executing these commands over and over, which saves some performance. 
+
+First, we check if we are currently escaped: if we are, we return the original parenthesis; if we aren't, we use the formallogic definition.
+
+For the left parenthesis, we peek at the next character to see if it is another left parenthesis. If it isn't, we will put in parinnerpad. For the right parenthesis, the logic is slightly more complex. We check the current value of rparpadreq, and if it is true, we insert parinnerpad and italiccorrection. Then, we look at the next character; if this is another right parenthesis, we set rparpadreq to false; if it is something else then we set it to true. The effect is that extra padding will not be inserted if the prior character was also a right parenthesis. To round off this section on parenthesis padding, note that the formallogic will check if the first character in its input is a right parenthesis, and set rparpadreq to false in this case. This means that \verb|\fmllgc{(}Px\fmllgc{)}| gives \fmllgc{(}Px\fmllgc{)}, while \verb|\fmllgc{(}Px\fmllgc{ )}| gives \fmllgc{(}Px\fmllgc{ )}\footnote{This makes spacing behaviour consistent: spacing is inserted if and only if a character other than `)' precedes.}.
+\\\mbox{}
+
+\noindent Here we define the command for ":
+\begin{Verbatim}
+\cs_new_protected:Nn \__formal_escapetoggle:
+{
+    \bool_set_inverse:N \l__formal_escaped_bool
+}
+\end{Verbatim}
+
+This next section of code implements quantifier stacks. It is quite complicated and involves a lot of trickery with math-active characters and weird arguments. The reason for this approach is that it is \emph{very} performant compared to alternatives (e.g. l3regex, sequence splitting):
+\begin{Verbatim}
+\cs_new_protected:Nn \__formal_quantstackenter:
+{
+    \bool_if:NTF \l__formal_escaped_bool 
+        {\use:c {__formal_original_|:}}
+        {
+            \begingroup
+            \char_set_active_eq:nN { `| } \__formal_quantstackesc:
+            \char_set_active_eq:nN { `; } \__formal_quantdivider:
+            \char_set_mathcode:nn { `; } { "8000 }
+            \__formal_headquant:w
+        }
+}
+\end{Verbatim}
+This will be assigned to `|'. As always, if escaped nothing happens. If not escaped, it:
+\begin{enumerate}
+    \item Begins a new group.
+    \item Sets the next occurrence of `|' to escape the quantifier stack instead of enter it.
+    \item Sets `;' to its active role as the divider between quantifiers.
+    \item Calls the command that parses the leading quantifier (headquant).
+\end{enumerate}
+Headquant does the following:
+\begin{Verbatim}
+\cs_new_protected:Npn \__formal_headquant:w #1,
+{                             
+ \tl_trim_spaces_apply:nN {#1} \__formal_headbox:n
+}
+\end{Verbatim}
+Here we are using the `weird' argument specification to eat the comma as part of the argument. As such, this command takes this section of the input: \texttt{|<=\#1=>, ...|} and discards the comma from the input stream. It then trims any spaces on either side of this input and passes the result to the `headbox' command, defined as follows:
+\begin{Verbatim}
+\cs_new_protected:Npn \__formal_headbox:n #1
+{
+\box_if_exist:cTF {l__formal_#1head_box}
+  {
+    \box_if_empty:cTF {l__formal_#1head_box} 
+      {
+        \box_if_exist:cTF {g__formal_#1head_box}
+          {\box_use:c{g__formal_#1head_box}}
+          {
+            \msg_set:nnnn { logictools } { quantnoglobaldeferror }
+            {Quantifier~’#1’~not~defined~\msg_line_context:.}
+            {You~are~attempting~to~use~a~locally~declared~quantifier
+            ~outside~of~its~group.~Either~define~it~globally~with
+            ~DeclareQuantifier,~or~define~it~locally~here~too.
+            \\ \msg_see_documentation_text:n {logictools}}
+            \msg_error:nn {logictools} {quantnoglobaldeferror}
+          }
+      } 
+      {
+        \box_use:c{l__formal_#1head_box}
+      }
+  }
+  {
+    \msg_set:nnnn { logictools } { quantneverdeferror }
+    {Quantifier~’#1’~used~but~never~defined.}
+    {You~must~declare~quantifiers~with~the~command(s)
+    ~(L)DeclareQuantifier~before~using~them.
+    \\ \msg_see_documentation_text:n {logictools}}
+    \msg_error:nn {logictools} {quantneverdeferror}
+  }
+}
+\end{Verbatim}
+This code takes the output from headquant and tries to find a matching declared quantifier. When quantifiers are declared, they are given associated local and global `headboxes' and `bodyboxes' (more on this later). Here we try to find headboxes associated with \texttt{<label>}, which will be called \verb|\(g,l)__formal_<label>head_box|. A local box should always exist if the quantifier was declared somewhere (as both LDeclare and Declare commands instantiate this), so we first check if this one does. Then, we check if it has content. If it is empty, we revert back to the global definition of the quantifier (which hopefully exists); however, if it is non-empty, then we take the local definition over the global one. Finally, rather than throwing cryptic errors, we send out custom error messages if our existence checks fail.
+
+All user input after the comma is processed as normal, forming the variable for the quantifier. We simply wait for `;', which tells us that a new quantifier is coming.
+\\\mbox{}
+
+\noindent On receiving this token, we do the same thing, but with bodyboxes:
+\vspace{\topsep}
+\begin{Verbatim}[vspace=0pt]
+\cs_new_protected:Npn \__formal_quantdivider:
+{
+    \bool_if:NTF \l__formal_escaped_bool 
+        {\use:c {__formal_original_;:}}
+        {\__formal_bodyquant:w}
+}
+
+\cs_new_protected:Npn \__formal_bodyquant:w #1,
+{
+    \mskip \use:c{l__formal_quantskip_muskip} \tl_trim_spaces_apply:nN {#1} \__formal_bodybox:n
+}
+
+\cs_new_protected:Npn \__formal_bodybox:n #1
+{
+\end{Verbatim}
+\qquad\quad \emph{Same as above but with every occurrence of `head' replaced with `body'.}
+\begin{Verbatim}[numbers=left,xleftmargin=5mm,firstnumber=180,vspace=0pt]
+}
+\end{Verbatim}
+\vspace{\topsep}
+The only significant change here is that we now insert quantskip before each quantifier. Also, bodyboxes include left padding values from the declared quantifier, which headboxes do not. In retrospect, there is probably a nicer way to accomplish the same behaviour. Too bad!
+\\\mbox{}
+
+\noindent Finally, the next occurrence of `|' ends the group and inserts lastquantskip:
+\begin{Verbatim}
+\cs_new_protected:Nn \__formal_quantstackesc:
+{
+    \endgroup \mskip \use:c{l__formal_lastquantskip_muskip}
+} 
+\end{Verbatim}
+By ending the group, we chuck out the active definition of `;' and the definition of `|' as quantstackesc. Thus, the next occurrence of `|' enters a new quantstack.
+\\\mbox{}
+
+We follow up with some more active definitions:
+\begin{Verbatim}
+\cs_new_protected:Nn \__formal_dot:
+{
+    \bool_if:NTF \l__formal_escaped_bool 
+        {\use:c {__formal_original_.:}}
+        {\peek_charcode_remove:NTF =
+            {\doteq}
+            {\use:c {__formal_original_.:}}}
+}
+
+\cs_new_protected:Nn \__formal_lbrack:
+{
+    \bool_if:NTF \l__formal_escaped_bool 
+        {\use:c {__formal_original_[:}}
+        {\__formal_varsub:w}
+}
+
+\cs_new_protected:Npn \__formal_varsub:w #1/#2]
+{
+    \left["\sfrac{"#1"}{"#2"}"\right]
+}
+\end{Verbatim}
+The definition for `.' just checks if there is an equals sign afterwards, and prints $\doteq$ if there is. The definition for `[' calls the command \verb|\__formal_varsub:w|. This command uses the weird argument type to grab any input of the form \texttt{[<stuff>/<more>]}. It then converts this into a nice looking fraction using the xfrac package. Unfortunately, for some reason the definition of \verb|\sfrac| makes syntactic use of the parentheses characters `(' and `)' (i.e. it cares that they have been redefined), and so the command must be escaped. However, the inputs need not be escaped, so we unescape them. This issue is something that should be looked out for when coding in this environment, though it is quite rare.\newpage
+\noindent Now we get on to the formallogic environment itself:
+\begin{Verbatim}
+\NewDocumentEnvironment{formallogic}{O{}}
+{
+    \setlength{\parindent}{0pt}
+    \cs_set:Npn \par {$\newline$}
+\end{Verbatim}
+This makes \verb|\par| work in math mode, so we can get a new line by hitting return twice.
+\begin{Verbatim}
+    \keys_set:nn {formal/options}
+        {
+            #1,
+        }
+    \setlength\scriptspace{\l__formal_scriptspace_dim}
+\end{Verbatim}
+Set any key-value pairs given as an optional argument, and then set scriptspace to the value specified by the user. We do this in the environment so the assignment is local.
+\begin{Verbatim}
+    \hbox_set:Nn \l__formal_lpar_box 
+        {
+            \raisebox{\l__formal_parvoffset_dim}
+            {$\l__formal_lparchar_tl \mkern \l__formal_parstackkern_muskip$}
+        }
+
+    \hbox_set:Nn \l__formal_rpar_box 
+        {
+            \raisebox{\l__formal_parvoffset_dim}
+            {$\mkern \l__formal_parstackkern_muskip \l__formal_rparchar_tl$}
+        }
+\end{Verbatim}
+Sets the parenthesis boxes: We take the associated character token (declared by the partype key), raise it by parvoffset, and insert parstackkern on the correct side.
+\begin{Verbatim}
+    \char_set_active_eq:nN { `( } \__formal_llpar_char:
+    \char_set_mathcode:nn { `( } { "8000 }
+    \char_set_active_eq:nN { `) } \__formal_rrpar_char:
+    \char_set_mathcode:nn { `) } { "8000 }
+    \char_set_active_eq:nN { `" } \__formal_escapetoggle:
+    \char_set_mathcode:nn { `" } { "8000 }
+    \char_set_active_eq:nN { `| } \__formal_quantstackenter:
+    \char_set_mathcode:nn { `| } { "8000 }
+    \char_set_active_eq:nN { `. } \__formal_dot:
+    \char_set_mathcode:nn { `. } { "8000 }
+    \char_set_active_eq:nN { `[ } \__formal_lbrack:
+    \char_set_mathcode:nn { `[ } { "8000 }
+\end{Verbatim}
+Makes all the characters used in the syntax math-active and sets their definitions.
+\begin{Verbatim}
+    \(
+    \peek_charcode:NTF ) 
+    {\bool_set_false:N \l__formal_rparpadreq_bool} 
+    {\bool_set_true:N \l__formal_rparpadreq_bool}
+}
+{\)}
+\end{Verbatim}
+Begins math-mode and sets rparpadreq based on if the next character is a `)'. At the end, we come out of math-mode. 
+\\\mbox{}\\\noindent
+The rest of the code is quite self-explanatory. The only thing worth noting is that DeclareQuantifier sets global variants of head and body boxes, while LDeclareQuantifier only sets local ones. This means that it is possible to locally declare a quantifier and have its definition fall out of scope by ending the group it was declared in. This will result in an empty local box, and a non-existent global box (it is also the only way for this configuration to happen); a custom error message explains this to the user if it occurs.
+\begin{Verbatim}
+\NewDocumentCommand{\DeclareQuantifier}{m m O{0mu} O{0mu}}
+{
+    \box_if_exist:cF {g__formal_#1head_box} 
+        {
+            \box_new:c {g__formal_#1head_box}
+            \box_new:c {g__formal_#1body_box}
+        }
+    \box_if_exist:cF {l__formal_#1head_box} 
+        {
+            \box_new:c {l__formal_#1head_box}
+            \box_new:c {l__formal_#1body_box}
+        }
+    \hbox_gset:cn {g__formal_#1head_box} 
+        {
+            $#2 \mkern#4$
+        }
+    \hbox_gset:cn {g__formal_#1body_box} 
+        {
+            $\mskip#3 #2 \mkern#4$
+        }
+}
+\NewDocumentCommand{\LDeclareQuantifier}{m m O{0mu} O{0mu}}
+{
+    \box_if_exist:cF {l__formal_#1head_box} 
+        {
+            \box_new:c {l__formal_#1head_box}
+            \box_new:c {l__formal_#1body_box}
+        }
+    \hbox_set:cn {l__formal_#1head_box} 
+        {
+            $#2 \mkern#4$
+        }
+    \hbox_set:cn {l__formal_#1body_box} 
+        {
+            $\mskip#3 #2 \mkern#4$
+        }
+}
+
+% Use this command to declare settings that
+will stay for the rest of the document!
+\NewDocumentCommand \logictoolsoptions { m }
+{
+\keys_set:nn {formal/options} 
+    {
+    #1 
+    }
+}
+
+% Command that puts things inside the formallogic environment,
+can be used inline.
+\NewDocumentCommand \fmllgc {o m}
+{
+\text{\begin{formallogic}[#1]#2
+\end{formallogic}}
+}
+\end{Verbatim}
+\mbox{}
+\subsection{Everything else}
+
+\begin{center}
+    \Large \dashbox{NOTES FOR OTHER FUNCTIONALITY PENDING}
+\end{center}
+\noindent It is worth pointing out these two things that happen right before the package finishes loading:
+\begin{Verbatim}[firstnumber=1]
+\DeclareQuantifier{exists}{\exists}
+\DeclareQuantifier{forall}{\forall}
+
+% Fix for amsmath messing with math-active codes.
+\edef\originalbmathcode{%
+    \noexpand\mathchardef\noexpand\@tempa\the\mathcode`\(\relax}
+\def\resetMathstrut@{%
+  \setbox\z@\hbox{%
+    \originalbmathcode
+    \def\@tempb##1"##2##3{\the\textfont"##3\char"}%
+    \expandafter\@tempb\meaning\@tempa \relax
+  }%
+  \ht\Mathstrutbox@\ht\z@ \dp\Mathstrutbox@\dp\z@
+}
+\end{Verbatim}
+The first is a declaration of quantifiers `exists' and `forall' as defaults. The final piece of code prevents a slew of errors caused by amsmath interacting with active mathcodes. I do not understand it in the slightest; I think it comes from David Carlisle.
 \end{document}
